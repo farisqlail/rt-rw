@@ -1,30 +1,47 @@
 "use client"
 
-import type React from "react"
-
-import { useState } from "react"
+import { useState, useEffect } from "react"
+import { signIn, useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Shield } from "lucide-react"
 
 export default function LoginPage() {
-  const router = useRouter()
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
   const [loading, setLoading] = useState(false)
+  const router = useRouter()
+  const { data: session, status } = useSession()
+
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.replace("/dashboard")
+    }
+  }, [status, router])
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
 
-    // Simulate login
-    setTimeout(() => {
-      router.push("/")
-    }, 1000)
+    const result = await signIn("credentials", {
+      redirect: false,
+      email,
+      password,
+    })
+
+    setLoading(false)
+
+    if (result?.ok) {
+      router.push("/dashboard")
+    } else {
+      alert("Email atau password salah")
+    }
   }
+
+  if (status === "authenticated") return null
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/30 p-4">
