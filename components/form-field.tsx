@@ -8,6 +8,8 @@ export interface FormFieldProps {
   type?: string
   value: string
   onChange: (e: React.ChangeEvent<HTMLInputElement>) => void
+  placeholder?: string
+  maxLength?: number
   required?: boolean
 }
 
@@ -17,6 +19,8 @@ export const FormField: React.FC<FormFieldProps> = ({
   type = "text",
   value,
   onChange,
+  placeholder = "",
+  maxLength,
   required = false,
 }) => {
   return (
@@ -27,6 +31,8 @@ export const FormField: React.FC<FormFieldProps> = ({
         type={type}
         value={value}
         onChange={onChange}
+        placeholder={placeholder}
+        maxLength={maxLength}
         required={required}
       />
     </div>

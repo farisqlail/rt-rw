@@ -72,7 +72,7 @@ export default function WargaPage() {
         title="Manajemen Warga"
         description="Kelola data warga RT/RW"
         action={
-          <Link href="/warga/tambah">
+          <Link href="/dashboard/warga/tambah">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Tambah Warga
@@ -101,7 +101,7 @@ export default function WargaPage() {
         </Button>
       </div>
 
-      <DataTable data={mockData} columns={columns} onRowClick={(row) => (window.location.href = `/warga/${row.id}`)} />
+      <DataTable data={mockData} columns={columns} onRowClick={(row) => (window.location.href = `/dashboard/warga/${row.id}`)} />
     </div>
   )
 }

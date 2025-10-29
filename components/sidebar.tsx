@@ -22,16 +22,16 @@ import { cn } from "@/lib/utils"
 import { useSession, signOut } from "next-auth/react"
 
 const menuItems = [
-  { icon: Home, label: "Dashboard", href: "/" },
-  { icon: Users, label: "Manajemen Warga", href: "/warga" },
-  { icon: FileText, label: "Administrasi Surat", href: "/surat" },
-  { icon: Wallet, label: "Keuangan", href: "/keuangan" },
-  { icon: Megaphone, label: "Pengumuman", href: "/pengumuman" },
-  { icon: Calendar, label: "Kegiatan", href: "/kegiatan" },
-  { icon: BarChart3, label: "Laporan", href: "/laporan" },
-  { icon: Shield, label: "Keamanan", href: "/keamanan" },
-  { icon: UserCog, label: "Manajemen User", href: "/users" },
-  { icon: Settings, label: "Pengaturan", href: "/pengaturan" },
+  { icon: Home, label: "Dashboard", href: "/dashboard/" },
+  { icon: Users, label: "Manajemen Warga", href: "/dashboard/warga" },
+  { icon: FileText, label: "Administrasi Surat", href: "/dashboard/surat" },
+  { icon: Wallet, label: "Keuangan", href: "/dashboard/keuangan" },
+  { icon: Megaphone, label: "Pengumuman", href: "/dashboard/pengumuman" },
+  { icon: Calendar, label: "Kegiatan", href: "/dashboard/kegiatan" },
+  { icon: BarChart3, label: "Laporan", href: "/dashboard/laporan" },
+  { icon: Shield, label: "Keamanan", href: "/dashboard/keamanan" },
+  { icon: UserCog, label: "Manajemen User", href: "/dashboard/users" },
+  { icon: Settings, label: "Pengaturan", href: "/dashboard/pengaturan" },
 ]
 
 export function Sidebar() {
@@ -42,11 +42,8 @@ export function Sidebar() {
   const user = session?.user
 
   const handleLogout = async () => {
-    // ❌ Hapus session di sisi NextAuth
     await signOut({ redirect: false })
-    // 🧹 Bersihkan localStorage/cookie tambahan kalau kamu simpan data manual
     localStorage.clear()
-    // 🚪 Redirect ke halaman login
     window.location.href = "/login"
   }
 
