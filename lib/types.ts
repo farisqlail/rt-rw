@@ -22,13 +22,13 @@ export interface Surat {
 }
 
 export interface Keuangan {
-  id: string
-  tanggal: string
-  jenis: "pemasukan" | "pengeluaran"
-  kategori: string
-  jumlah: number
-  keterangan: string
-  bukti?: string
+  id: number
+  finance_category: "pemasukan" | "pengeluaran"
+  category: string
+  amount: number
+  description: string
+  created_at: string
+  uuid: string
 }
 
 export interface Pengumuman {
@@ -43,13 +43,16 @@ export interface Pengumuman {
 
 export interface Kegiatan {
   id: string
-  namaKegiatan: string
-  tanggal: string
-  waktu: string
-  lokasi: string
-  deskripsi: string
-  penanggungJawab: string
+  activity_name: string
+  date: string
+  time_start: string
+  time_end: string
+  location: string
+  description: string
+  guarantor: string
   status: "planned" | "ongoing" | "completed" | "cancelled"
+  created_at: string
+  uuid: string
 }
 
 export interface LaporanKeamanan {
@@ -71,4 +74,14 @@ export interface User {
   status: "aktif" | "nonaktif"
   tanggalDibuat: string
   terakhirLogin?: string
+}
+
+export interface Laporan {
+  id: string
+  title: string
+  description: string
+  priority: "rendah" | "sedang" | "tinggi"
+  status: "open" | "in-progress" | "resolved" | "closed"
+  created_at: string
+  uuid: string
 }

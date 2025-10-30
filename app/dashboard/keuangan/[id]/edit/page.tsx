@@ -2,9 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { ArrowLeft, Upload } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
+import { ArrowLeft, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
 import { FormField } from "@/components/form-field"
@@ -13,33 +13,85 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card } from "@/components/ui/card"
-
-// Mock initial data
-const initialData = {
-  tanggal: "2024-01-15",
-  jenis: "pemasukan",
-  kategori: "Iuran Bulanan",
-  jumlah: "5000000",
-  keterangan: "Iuran warga bulan Januari 2024",
-}
+import { getData, updateData } from "@/lib/supabaseUtils"
+import { Keuangan } from "@/lib/types"
 
 export default function EditKeuanganPage() {
   const router = useRouter()
-  const [formData, setFormData] = useState(initialData)
+  const params = useParams()
+  const [loading, setLoading] = useState(false)
+  const [fetchLoading, setFetchLoading] = useState(true)
+  const [formData, setFormData] = useState({
+    finance_category: "pemasukan" as "pemasukan" | "pengeluaran",
+    category: "",
+    amount: "",
+    description: "",
+  })
+  const [originalData, setOriginalData] = useState<Keuangan | null>(null)
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchFinanceData = async () => {
+      try {
+        setFetchLoading(true)
+        const data = await getData("rtrw_finances", { id: params.id })
+        if (data && data.length > 0) {
+          const finance = data[0] as Keuangan
+          setOriginalData(finance)
+          setFormData({
+            finance_category: finance.finance_category,
+            category: finance.category,
+            amount: finance.amount.toString(),
+            description: finance.description,
+          })
+        }
+      } catch (error) {
+        console.error("Error fetching finance data:", error)
+        alert("Gagal memuat data transaksi")
+      } finally {
+        setFetchLoading(false)
+      }
+    }
+
+    if (params.id) {
+      fetchFinanceData()
+    }
+  }, [params.id])
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    console.log("[v0] Transaction updated:", formData)
-    // TODO: Implement API call
-    router.push("/keuangan/1")
+    setLoading(true)
+    
+    try {
+      const financeData = {
+        ...formData,
+        amount: parseFloat(formData.amount),
+      }
+      
+      await updateData("rtrw_finances", params.id as string, financeData)
+      router.push("/dashboard/keuangan")
+    } catch (error) {
+      console.error("Error updating finance:", error)
+      alert("Gagal memperbarui transaksi. Silakan coba lagi.")
+    } finally {
+      setLoading(false)
+    }
   }
 
   const kategoriPemasukan = ["Iuran Bulanan", "Iuran Keamanan", "Donasi", "Lain-lain"]
   const kategoriPengeluaran = ["Kebersihan", "Keamanan", "Pemeliharaan", "Administrasi", "Lain-lain"]
 
+  if (fetchLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin" />
+        <span className="ml-2">Memuat data transaksi...</span>
+      </div>
+    )
+  }
+
   return (
     <div>
-      <Link href="/keuangan/1">
+      <Link href="/dashboard/keuangan">
         <Button variant="ghost" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Kembali
@@ -51,17 +103,8 @@ export default function EditKeuanganPage() {
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormField label="Tanggal" required>
-              <Input
-                type="date"
-                value={formData.tanggal}
-                onChange={(e) => setFormData({ ...formData, tanggal: e.target.value })}
-                required
-              />
-            </FormField>
-
             <FormField label="Jenis Transaksi" required>
-              <Select value={formData.jenis} onValueChange={(value) => setFormData({ ...formData, jenis: value })}>
+              <Select value={formData.finance_category} onValueChange={(value: "pemasukan" | "pengeluaran") => setFormData({ ...formData, finance_category: value })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -74,14 +117,14 @@ export default function EditKeuanganPage() {
 
             <FormField label="Kategori" required>
               <Select
-                value={formData.kategori}
-                onValueChange={(value) => setFormData({ ...formData, kategori: value })}
+                value={formData.category}
+                onValueChange={(value) => setFormData({ ...formData, category: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  {(formData.jenis === "pemasukan" ? kategoriPemasukan : kategoriPengeluaran).map((kat) => (
+                  {(formData.finance_category === "pemasukan" ? kategoriPemasukan : kategoriPengeluaran).map((kat) => (
                     <SelectItem key={kat} value={kat}>
                       {kat}
                     </SelectItem>
@@ -93,8 +136,8 @@ export default function EditKeuanganPage() {
             <FormField label="Jumlah (Rp)" required>
               <Input
                 type="number"
-                value={formData.jumlah}
-                onChange={(e) => setFormData({ ...formData, jumlah: e.target.value })}
+                value={formData.amount}
+                onChange={(e) => setFormData({ ...formData, amount: e.target.value })}
                 required
               />
             </FormField>
@@ -102,28 +145,27 @@ export default function EditKeuanganPage() {
 
           <FormField label="Keterangan" required>
             <Textarea
-              value={formData.keterangan}
-              onChange={(e) => setFormData({ ...formData, keterangan: e.target.value })}
+              value={formData.description}
+              onChange={(e) => setFormData({ ...formData, description: e.target.value })}
               rows={3}
               required
             />
           </FormField>
 
-          <FormField label="Bukti Transaksi">
-            <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
-              <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
-              <p className="text-sm text-muted-foreground mb-2">Upload foto bukti transaksi baru</p>
-              <Input type="file" accept="image/*" className="max-w-xs mx-auto" />
-            </div>
-          </FormField>
-
-          <div className="flex gap-3 justify-end">
-            <Link href="/keuangan/1">
-              <Button type="button" variant="outline">
-                Batal
-              </Button>
-            </Link>
-            <Button type="submit">Simpan Perubahan</Button>
+          <div className="flex gap-4 pt-4">
+            <Button type="submit" className="flex-1" disabled={loading}>
+              {loading ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Menyimpan...
+                </>
+              ) : (
+                "Simpan Perubahan"
+              )}
+            </Button>
+            <Button type="button" variant="outline" onClick={() => router.back()} disabled={loading}>
+              Batal
+            </Button>
           </div>
         </form>
       </Card>

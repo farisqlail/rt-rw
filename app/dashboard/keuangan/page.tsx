@@ -1,42 +1,25 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Search, Filter, TrendingUp, TrendingDown, Wallet } from "lucide-react"
+import { Plus, Search, Filter, TrendingUp, TrendingDown, Wallet, Edit, Trash2, Loader2 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { getData, deleteData } from "@/lib/supabaseUtils"
 import type { Keuangan } from "@/lib/types"
 
-const mockData: Keuangan[] = [
-  {
-    id: "1",
-    tanggal: "2024-01-15",
-    jenis: "pemasukan",
-    kategori: "Iuran Bulanan",
-    jumlah: 5000000,
-    keterangan: "Iuran warga bulan Januari 2024",
-  },
-  {
-    id: "2",
-    tanggal: "2024-01-18",
-    jenis: "pengeluaran",
-    kategori: "Kebersihan",
-    jumlah: 1500000,
-    keterangan: "Pembayaran petugas kebersihan",
-  },
-  {
-    id: "3",
-    tanggal: "2024-01-20",
-    jenis: "pengeluaran",
-    kategori: "Keamanan",
-    jumlah: 2000000,
-    keterangan: "Gaji satpam bulan Januari",
-  },
-]
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("id-ID", {
+    year: "numeric",
+    month: "long",
+    day: "numeric"
+  })
+}
 
 const formatRupiah = (amount: number) => {
   return new Intl.NumberFormat("id-ID", {
@@ -48,35 +31,134 @@ const formatRupiah = (amount: number) => {
 
 export default function KeuanganPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [keuanganData, setKeuanganData] = useState<Keuangan[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [deleteLoading, setDeleteLoading] = useState<number | null>(null)
 
-  const totalPemasukan = mockData
-    .filter((item) => item.jenis === "pemasukan")
-    .reduce((sum, item) => sum + item.jumlah, 0)
-  const totalPengeluaran = mockData
-    .filter((item) => item.jenis === "pengeluaran")
-    .reduce((sum, item) => sum + item.jumlah, 0)
+  useEffect(() => {
+    fetchKeuanganData()
+  }, [])
+
+  const fetchKeuanganData = async () => {
+    try {
+      setLoading(true)
+      const data = await getData<Keuangan>("rtrw_finances")
+      if (data) {
+        setKeuanganData(data)
+      }
+    } catch (error) {
+      console.error("Error fetching finance data:", error)
+      setError("Gagal memuat data keuangan")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleEdit = (id: number) => {
+    window.location.href = `/dashboard/keuangan/${id}/edit`
+  }
+
+  const handleDelete = async (id: number) => {
+    try {
+      setDeleteLoading(id)
+      const success = await deleteData("rtrw_finances", id)
+      if (success) {
+        await fetchKeuanganData()
+      } else {
+        alert("Gagal menghapus data keuangan")
+      }
+    } catch (error) {
+      console.error("Error deleting finance:", error)
+      alert("Gagal menghapus data keuangan")
+    } finally {
+      setDeleteLoading(null)
+    }
+  }
+
+  const filteredData = keuanganData.filter((item) =>
+    item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    item.description.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const totalPemasukan = filteredData
+    .filter((item) => item.finance_category === "pemasukan")
+    .reduce((sum, item) => sum + item.amount, 0)
+  const totalPengeluaran = filteredData
+    .filter((item) => item.finance_category === "pengeluaran")
+    .reduce((sum, item) => sum + item.amount, 0)
   const saldo = totalPemasukan - totalPengeluaran
 
   const columns = [
-    { header: "Tanggal", accessor: "tanggal" as const },
+    { 
+      header: "Tanggal", 
+      accessor: (row: Keuangan) => formatDate(row.created_at)
+    },
     {
       header: "Jenis",
       accessor: (row: Keuangan) => (
-        <Badge variant={row.jenis === "pemasukan" ? "default" : "secondary"}>
-          {row.jenis === "pemasukan" ? "Pemasukan" : "Pengeluaran"}
+        <Badge variant={row.finance_category === "pemasukan" ? "default" : "secondary"}>
+          {row.finance_category === "pemasukan" ? "Pemasukan" : "Pengeluaran"}
         </Badge>
       ),
     },
-    { header: "Kategori", accessor: "kategori" as const },
+    { header: "Kategori", accessor: "category" as const },
     {
       header: "Jumlah",
       accessor: (row: Keuangan) => (
-        <span className={row.jenis === "pemasukan" ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
-          {row.jenis === "pemasukan" ? "+" : "-"} {formatRupiah(row.jumlah)}
+        <span className={row.finance_category === "pemasukan" ? "text-green-600 font-medium" : "text-red-600 font-medium"}>
+          {row.finance_category === "pemasukan" ? "+" : "-"} {formatRupiah(row.amount)}
         </span>
       ),
     },
-    { header: "Keterangan", accessor: "keterangan" as const },
+    { header: "Keterangan", accessor: "description" as const },
+    {
+      header: "Aksi",
+      accessor: (row: Keuangan) => (
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleEdit(row.id)
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => e.stopPropagation()}
+                disabled={deleteLoading === row.id}
+              >
+                {deleteLoading === row.id ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Trash2 className="h-4 w-4" />
+                )}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Hapus Transaksi</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Apakah Anda yakin ingin menghapus transaksi ini? Tindakan ini tidak dapat dibatalkan.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Batal</AlertDialogCancel>
+                <AlertDialogAction onClick={() => handleDelete(row.id)}>
+                  Hapus
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
+      ),
+    },
   ]
 
   return (
@@ -85,7 +167,7 @@ export default function KeuanganPage() {
         title="Keuangan RT/RW"
         description="Kelola pemasukan dan pengeluaran"
         action={
-          <Link href="/keuangan/tambah">
+          <Link href="/dashboard/keuangan/tambah">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Tambah Transaksi
@@ -148,11 +230,35 @@ export default function KeuanganPage() {
         </Button>
       </div>
 
-      <DataTable
-        data={mockData}
-        columns={columns}
-        onRowClick={(row) => (window.location.href = `/keuangan/${row.id}`)}
-      />
+      {loading ? (
+        <div className="flex items-center justify-center py-8">
+          <Loader2 className="h-8 w-8 animate-spin" />
+          <span className="ml-2">Memuat data keuangan...</span>
+        </div>
+      ) : error ? (
+        <div className="text-center py-8">
+          <p className="text-red-600">{error}</p>
+          <Button onClick={fetchKeuanganData} className="mt-4">
+            Coba Lagi
+          </Button>
+        </div>
+      ) : filteredData.length === 0 ? (
+        <div className="text-center py-8">
+          <p className="text-muted-foreground">Belum ada data transaksi keuangan.</p>
+          <Link href="/dashboard/keuangan/tambah">
+            <Button className="mt-4">
+              <Plus className="h-4 w-4 mr-2" />
+              Tambah Transaksi Pertama
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <DataTable
+          data={filteredData}
+          columns={columns}
+          onRowClick={(row) => (window.location.href = `/dashboard/keuangan/${row.id}`)}
+        />
+      )}
     </div>
   )
 }
