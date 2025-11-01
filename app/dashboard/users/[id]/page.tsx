@@ -75,13 +75,13 @@ export default function UserDetailPage() {
         description="Informasi lengkap pengguna sistem"
         action={
           <div className="flex gap-2">
-            <Link href="/users">
+            <Link href="/dashboard/users">
               <Button variant="outline">
                 <ArrowLeft className="h-4 w-4 mr-2" />
                 Kembali
               </Button>
             </Link>
-            <Link href={`/users/${user.id}/edit`}>
+            <Link href={`/dashboard/users/${user.id}/edit`}>
               <Button>
                 <Pencil className="h-4 w-4 mr-2" />
                 Edit

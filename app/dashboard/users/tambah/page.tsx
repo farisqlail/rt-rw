@@ -75,7 +75,7 @@ export default function TambahUserPage() {
 
       if (result) {
         alert("User berhasil disimpan!")
-        router.push("/users")
+        router.push("/dashboard/users")
       } else {
         alert("Gagal menyimpan user, periksa console untuk detail error.")
       }
@@ -93,7 +93,7 @@ export default function TambahUserPage() {
         title="Tambah User Baru"
         description="Buat akun pengguna baru untuk sistem"
         action={
-          <Link href="/users">
+          <Link href="/dashboard/users">
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Kembali
@@ -201,7 +201,7 @@ export default function TambahUserPage() {
             </div>
 
             <div className="flex justify-end gap-4">
-              <Link href="/users">
+              <Link href="/dashboard/users">
                 <Button type="button" variant="outline">
                   Batal
                 </Button>

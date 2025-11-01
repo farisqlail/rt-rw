@@ -91,12 +91,12 @@ export default function UsersPage() {
       header: "Aksi",
       accessor: (row: User) => (
         <div className="flex items-center gap-2">
-          <Link href={`/users/${row.id}`}>
+          <Link href={`/dashboard/users/${row.id}`}>
             <Button variant="ghost" size="icon">
               <Eye className="h-4 w-4" />
             </Button>
           </Link>
-          <Link href={`/users/${row.id}/edit`}>
+          <Link href={`/dashboard/users/${row.id}/edit`}>
             <Button variant="ghost" size="icon">
               <Pencil className="h-4 w-4" />
             </Button>
@@ -111,12 +111,12 @@ export default function UsersPage() {
 
   const actions = (user: User) => (
     <div className="flex items-center gap-2">
-      <Link href={`/users/${user.id}`}>
+      <Link href={`/dashboard/users/${user.id}`}>
         <Button variant="ghost" size="icon">
           <Eye className="h-4 w-4" />
         </Button>
       </Link>
-      <Link href={`/users/${user.id}/edit`}>
+      <Link href={`/dashboard/users/${user.id}/edit`}>
         <Button variant="ghost" size="icon">
           <Pencil className="h-4 w-4" />
         </Button>
@@ -133,7 +133,7 @@ export default function UsersPage() {
         title="Manajemen User"
         description="Kelola akses dan hak pengguna sistem"
         action={
-          <Link href="/users/tambah">
+          <Link href="/dashboard/users/tambah">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Tambah User

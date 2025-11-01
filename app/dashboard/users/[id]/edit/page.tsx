@@ -56,7 +56,7 @@ export default function EditUserPage() {
         })
       } else {
         alert("Data user tidak ditemukan.")
-        router.push("/users")
+        router.push("/dashboard/users")
       }
       setLoading(false)
     }
@@ -88,7 +88,7 @@ export default function EditUserPage() {
 
     if (result) {
       alert("Data berhasil diperbarui.")
-      router.push(`/users/${id}`)
+      router.push(`/dashboard/users/${id}`)
     } else {
       alert("Gagal memperbarui data.")
     }
@@ -104,7 +104,7 @@ export default function EditUserPage() {
         title="Edit User"
         description="Perbarui informasi pengguna sistem"
         action={
-          <Link href={`/users/${id}`}>
+          <Link href={`/dashboard/users/${id}`}>
             <Button variant="outline">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Kembali
@@ -190,7 +190,7 @@ export default function EditUserPage() {
             </div>
 
             <div className="flex justify-end gap-4">
-              <Link href={`/users/${id}`}>
+              <Link href={`/dashboard/users/${id}`}>
                 <Button type="button" variant="outline">
                   Batal
                 </Button>
