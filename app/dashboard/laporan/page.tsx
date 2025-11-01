@@ -353,10 +353,10 @@ export default function LaporanPage() {
             placeholder="Cari laporan berdasarkan judul, deskripsi, prioritas, atau status..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 search-input"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="filter-button">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>

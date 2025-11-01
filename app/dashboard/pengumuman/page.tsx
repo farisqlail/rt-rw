@@ -1,48 +1,101 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Search, Filter, AlertCircle } from "lucide-react"
+import { Plus, Search, Filter, AlertCircle, Trash2, Edit, Eye } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
-import type { Pengumuman } from "@/lib/types"
-
-const mockData: Pengumuman[] = [
-  {
-    id: "1",
-    judul: "Jadwal Kerja Bakti Minggu Ini",
-    konten:
-      "Dihimbau kepada seluruh warga untuk mengikuti kerja bakti pada hari Minggu, 28 Januari 2024 pukul 07.00 WIB. Mohon kehadiran dan partisipasinya.",
-    tanggal: "2024-01-25",
-    penulis: "Ketua RT",
-    prioritas: "tinggi",
-    status: "published",
-  },
-  {
-    id: "2",
-    judul: "Pembayaran Iuran Bulan Februari",
-    konten: "Pengingat untuk pembayaran iuran bulanan bulan Februari 2024. Dapat dibayarkan melalui bendahara RT.",
-    tanggal: "2024-01-20",
-    penulis: "Bendahara RT",
-    prioritas: "sedang",
-    status: "published",
-  },
-  {
-    id: "3",
-    judul: "Pemadaman Listrik Terjadwal",
-    konten: "Akan ada pemadaman listrik terjadwal pada tanggal 30 Januari 2024 pukul 09.00-12.00 WIB.",
-    tanggal: "2024-01-22",
-    penulis: "Admin RT",
-    prioritas: "tinggi",
-    status: "published",
-  },
-]
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import type { Announcement } from "@/lib/types"
 
 export default function PengumumanPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [announcements, setAnnouncements] = useState<Announcement[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+
+  // Fetch announcements from API
+  const fetchAnnouncements = async () => {
+    try {
+      setLoading(true)
+      const response = await fetch('/api/announcements')
+      if (!response.ok) {
+        throw new Error('Failed to fetch announcements')
+      }
+      const data = await response.json()
+      setAnnouncements(data)
+      setError(null)
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Delete announcement
+  const handleDelete = async (id: number) => {
+    try {
+      const response = await fetch(`/api/announcements/${id}`, {
+        method: 'DELETE',
+      })
+      if (!response.ok) {
+        throw new Error('Failed to delete announcement')
+      }
+      // Refresh the list
+      fetchAnnouncements()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to delete announcement')
+    }
+  }
+
+  // Filter announcements based on search query
+  const filteredAnnouncements = announcements.filter(announcement =>
+    announcement.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    announcement.descriptions.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  // Load announcements on component mount
+  useEffect(() => {
+    fetchAnnouncements()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+          <p>Memuat pengumuman...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <AlertCircle className="h-8 w-8 text-red-500 mx-auto mb-4" />
+          <p className="text-red-500">{error}</p>
+          <Button onClick={fetchAnnouncements} className="mt-4">
+            Coba Lagi
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div>
@@ -50,7 +103,7 @@ export default function PengumumanPage() {
         title="Pengumuman & Informasi"
         description="Kelola pengumuman untuk warga"
         action={
-          <Link href="/pengumuman/buat">
+          <Link href="/dashboard/pengumuman/tambah">
             <Button>
               <Plus className="h-4 w-4 mr-2" />
               Buat Pengumuman
@@ -66,49 +119,105 @@ export default function PengumumanPage() {
             placeholder="Cari pengumuman..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 search-input"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="filter-button">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
       </div>
 
-      <div className="space-y-4">
-        {mockData.map((item) => (
-          <Link key={item.id} href={`/pengumuman/${item.id}`}>
-            <Card className="p-6 hover:bg-muted/50 transition-colors cursor-pointer">
+      {filteredAnnouncements.length === 0 ? (
+        <div className="text-center py-12">
+          <AlertCircle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+          <h3 className="text-lg font-semibold mb-2">Tidak ada pengumuman</h3>
+          <p className="text-muted-foreground mb-4">
+            {searchQuery ? "Tidak ada pengumuman yang sesuai dengan pencarian." : "Belum ada pengumuman yang dibuat."}
+          </p>
+          <Link href="/dashboard/pengumuman/tambah">
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Buat Pengumuman Pertama
+            </Button>
+          </Link>
+        </div>
+      ) : (
+        <div className="space-y-4">
+          {filteredAnnouncements.map((item) => (
+            <Card key={item.id} className="p-6">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  {item.prioritas === "tinggi" && <AlertCircle className="h-5 w-5 text-red-500" />}
-                  <h3 className="text-lg font-semibold">{item.judul}</h3>
+                  {item.priority === "tinggi" && <AlertCircle className="h-5 w-5 text-red-500" />}
+                  <h3 className="text-lg font-semibold">{item.title}</h3>
                 </div>
                 <div className="flex gap-2">
                   <Badge
                     variant={
-                      item.prioritas === "tinggi"
+                      item.priority === "tinggi"
                         ? "destructive"
-                        : item.prioritas === "sedang"
+                        : item.priority === "sedang"
                           ? "default"
                           : "secondary"
                     }
                   >
-                    {item.prioritas}
+                    {item.priority}
                   </Badge>
-                  <Badge variant={item.status === "published" ? "default" : "secondary"}>{item.status}</Badge>
+                  <Badge variant={item.status === "published" ? "default" : "secondary"}>
+                    {item.status}
+                  </Badge>
                 </div>
               </div>
-              <p className="text-muted-foreground mb-3 line-clamp-2">{item.konten}</p>
-              <div className="flex items-center gap-4 text-sm text-muted-foreground">
-                <span>{item.penulis}</span>
-                <span>•</span>
-                <span>{item.tanggal}</span>
+              <p className="text-muted-foreground mb-3 line-clamp-2">{item.descriptions}</p>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                  <span>{new Date(item.created_at).toLocaleDateString('id-ID')}</span>
+                </div>
+                <div className="flex gap-2">
+                  <Link href={`/dashboard/pengumuman/detail/${item.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Eye className="h-4 w-4 mr-1" />
+                      Lihat
+                    </Button>
+                  </Link>
+                  <Link href={`/dashboard/pengumuman/edit/${item.id}`}>
+                    <Button variant="outline" size="sm">
+                      <Edit className="h-4 w-4 mr-1" />
+                      Edit
+                    </Button>
+                  </Link>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700">
+                        <Trash2 className="h-4 w-4 mr-1" />
+                        Hapus
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Hapus Pengumuman</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Apakah Anda yakin ingin menghapus pengumuman "{item.title}"? 
+                          Tindakan ini tidak dapat dibatalkan.
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>Batal</AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={() => handleDelete(item.id)}
+                          className="bg-red-600 hover:bg-red-700"
+                        >
+                          Hapus
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </div>
             </Card>
-          </Link>
-        ))}
-      </div>
+          ))}
+        </div>
+      )}
     </div>
   )
 }

@@ -36,7 +36,7 @@ export default function TambahWargaPage() {
       nik: formData.nik,
       name: formData.name,
       address: formData.address,
-      rtrw,
+      rtrw: rtrw,
       phone: formData.phone,
       status: formData.status,
       created_at: new Date().toISOString(),
@@ -52,12 +52,12 @@ export default function TambahWargaPage() {
     }
 
     alert("Data warga berhasil disimpan!")
-    router.push("/warga")
+    router.push("/dashboard/warga")
   }
 
   return (
     <div>
-      <Link href="/warga">
+      <Link href="/dashboard/warga">
         <Button variant="ghost" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Kembali
@@ -157,7 +157,7 @@ export default function TambahWargaPage() {
           </div>
 
           <div className="flex gap-3 justify-end">
-            <Link href="/warga">
+            <Link href="/dashboard/warga">
               <Button type="button" variant="outline">
                 Batal
               </Button>

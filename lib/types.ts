@@ -21,6 +21,28 @@ export interface Surat {
   keterangan?: string
 }
 
+export interface MailManagement {
+  id: number
+  mail_number: string
+  mail_category: string
+  applicant: string
+  status: string
+  created_at: string
+  uuid: string
+}
+
+export interface Resident {
+  id: number
+  nik: string
+  name: string
+  address: string
+  rtrw: string
+  phone: string
+  status: string
+  created_at: string
+  uuid: string
+}
+
 export interface Keuangan {
   id: number
   finance_category: "pemasukan" | "pengeluaran"
@@ -39,6 +61,16 @@ export interface Pengumuman {
   penulis: string
   prioritas: "rendah" | "sedang" | "tinggi"
   status: "draft" | "published"
+}
+
+export interface Announcement {
+  id: number
+  title: string
+  descriptions: string
+  priority: "rendah" | "sedang" | "tinggi"
+  status: "draft" | "published"
+  created_at: string
+  uuid: string
 }
 
 export interface Kegiatan {
@@ -63,6 +95,17 @@ export interface LaporanKeamanan {
   lokasi: string
   pelapor: string
   status: "open" | "in-progress" | "resolved"
+}
+
+export interface Security {
+  id: number
+  date: string
+  descriptions: string
+  location: string
+  reporter: string
+  status: string
+  created_at: string
+  uuid: string
 }
 
 export interface User {

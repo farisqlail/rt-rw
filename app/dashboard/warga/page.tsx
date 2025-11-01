@@ -1,70 +1,93 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Search, Filter, Download } from "lucide-react"
+import { Plus, Search, Filter, Download, Edit, Trash2 } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import type { Warga } from "@/lib/types"
-
-const mockData: Warga[] = [
-  {
-    id: "1",
-    nik: "3201012345678901",
-    nama: "Budi Santoso",
-    alamat: "Jl. Merdeka No. 12",
-    rt: "001",
-    rw: "005",
-    telepon: "081234567890",
-    email: "budi@email.com",
-    status: "aktif",
-    tanggalDaftar: "2024-01-15",
-  },
-  {
-    id: "2",
-    nik: "3201012345678902",
-    nama: "Siti Nurhaliza",
-    alamat: "Jl. Merdeka No. 15",
-    rt: "002",
-    rw: "005",
-    telepon: "081234567891",
-    status: "aktif",
-    tanggalDaftar: "2024-02-20",
-  },
-  {
-    id: "3",
-    nik: "3201012345678903",
-    nama: "Ahmad Dahlan",
-    alamat: "Jl. Merdeka No. 20",
-    rt: "001",
-    rw: "005",
-    telepon: "081234567892",
-    status: "pindah",
-    tanggalDaftar: "2023-11-10",
-  },
-]
+import { Skeleton } from "@/components/ui/skeleton"
+import { getData, deleteData } from "@/lib/supabaseUtils"
+import type { Resident } from "@/lib/types"
 
 export default function WargaPage() {
   const [searchQuery, setSearchQuery] = useState("")
+  const [residents, setResidents] = useState<Resident[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    const fetchResidents = async () => {
+      try {
+        const data = await getData("rtrw_residents")
+        setResidents((data as Resident[]) || [])
+      } catch (error) {
+        console.error("Error fetching residents:", error)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchResidents()
+  }, [])
+
+  const handleDelete = async (id: number) => {
+    if (confirm("Apakah Anda yakin ingin menghapus data warga ini?")) {
+      try {
+        await deleteData("rtrw_residents", id)
+        setResidents(residents.filter(resident => resident.id !== id))
+        alert("Data warga berhasil dihapus!")
+      } catch (error) {
+        console.error("Error deleting resident:", error)
+        alert("Gagal menghapus data warga!")
+      }
+    }
+  }
 
   const columns = [
     { header: "NIK", accessor: "nik" as const },
-    { header: "Nama", accessor: "nama" as const },
-    { header: "Alamat", accessor: "alamat" as const },
-    { header: "RT/RW", accessor: (row: Warga) => `${row.rt}/${row.rw}` },
-    { header: "Telepon", accessor: "telepon" as const },
+    { header: "Nama", accessor: "name" as const },
+    { header: "Alamat", accessor: "address" as const },
+    { header: "RT/RW", accessor: "rtrw" as const },
+    { header: "Telepon", accessor: "phone" as const },
     {
       header: "Status",
-      accessor: (row: Warga) => (
+      accessor: (row: Resident) => (
         <Badge variant={row.status === "aktif" ? "default" : row.status === "pindah" ? "secondary" : "destructive"}>
           {row.status}
         </Badge>
       ),
     },
+    {
+      header: "Aksi",
+      accessor: (row: Resident) => (
+        <div className="flex gap-2">
+          <Link href={`/dashboard/warga/${row.id}/edit`}>
+            <Button variant="outline" size="sm">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDelete(row.id)
+            }}
+          >
+            <Trash2 className="h-4 w-4" />
+          </Button>
+        </div>
+      ),
+    },
   ]
+
+  const filteredResidents = residents.filter((resident) =>
+    resident.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    resident.nik.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    resident.address.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   return (
     <div>
@@ -88,10 +111,10 @@ export default function WargaPage() {
             placeholder="Cari berdasarkan nama, NIK, atau alamat..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 search-input"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="filter-button">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>
@@ -101,7 +124,19 @@ export default function WargaPage() {
         </Button>
       </div>
 
-      <DataTable data={mockData} columns={columns} onRowClick={(row) => (window.location.href = `/dashboard/warga/${row.id}`)} />
+      {loading ? (
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="w-full h-10" />
+          ))}
+        </div>
+      ) : (
+        <DataTable 
+          data={filteredResidents} 
+          columns={columns} 
+          onRowClick={(row) => (window.location.href = `/dashboard/warga/${row.id}`)}
+        />
+      )}
     </div>
   )
 }

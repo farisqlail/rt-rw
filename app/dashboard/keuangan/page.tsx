@@ -221,10 +221,10 @@ export default function KeuanganPage() {
             placeholder="Cari transaksi..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
+            className="pl-10 search-input"
           />
         </div>
-        <Button variant="outline">
+        <Button variant="outline" className="filter-button">
           <Filter className="h-4 w-4 mr-2" />
           Filter
         </Button>

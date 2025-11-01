@@ -4,74 +4,76 @@
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --background: oklch(1 0 0);
-  --foreground: oklch(0.145 0 0);
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.97 0 0);
-  --accent-foreground: oklch(0.205 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  /* Minimalist color scheme for 40-60 age group */
+  --background: oklch(0.98 0 0); /* Soft white background */
+  --foreground: oklch(0.15 0 0); /* Deep charcoal for high contrast */
+  --card: oklch(1 0 0); /* Pure white cards */
+  --card-foreground: oklch(0.15 0 0); /* Deep charcoal text */
+  --popover: oklch(1 0 0); /* Pure white popover */
+  --popover-foreground: oklch(0.15 0 0); /* Deep charcoal text */
+  --primary: oklch(0.45 0.08 220); /* Calm blue-gray */
+  --primary-foreground: oklch(0.98 0 0); /* White text on primary */
+  --secondary: oklch(0.94 0 0); /* Light gray */
+  --secondary-foreground: oklch(0.25 0 0); /* Dark gray text */
+  --muted: oklch(0.96 0 0); /* Very light gray */
+  --muted-foreground: oklch(0.45 0 0); /* Medium gray for subtle text */
+  --accent: oklch(0.92 0 0); /* Subtle accent background */
+  --accent-foreground: oklch(0.2 0 0); /* Dark text on accent */
+  --destructive: oklch(0.55 0.15 15); /* Muted red for errors */
+  --destructive-foreground: oklch(0.98 0 0); /* White text on destructive */
+  --border: oklch(0.88 0 0); /* Soft gray borders */
+  --input: oklch(0.96 0 0); /* Light gray input background */
+  --ring: oklch(0.45 0.08 220); /* Focus ring matches primary */
+  --chart-1: oklch(0.5 0.12 220); /* Calm blue */
+  --chart-2: oklch(0.55 0.1 160); /* Soft teal */
+  --chart-3: oklch(0.6 0.08 80); /* Muted green */
+  --chart-4: oklch(0.5 0.1 280); /* Soft purple */
+  --chart-5: oklch(0.55 0.12 40); /* Warm orange */
+  --radius: 0.5rem; /* Slightly smaller radius for cleaner look */
+  --sidebar: oklch(0.96 0 0); /* Light gray sidebar */
+  --sidebar-foreground: oklch(0.2 0 0); /* Dark text */
+  --sidebar-primary: oklch(0.45 0.08 220); /* Calm blue-gray */
+  --sidebar-primary-foreground: oklch(0.98 0 0); /* White text */
+  --sidebar-accent: oklch(0.92 0 0); /* Subtle accent */
+  --sidebar-accent-foreground: oklch(0.2 0 0); /* Dark text */
+  --sidebar-border: oklch(0.88 0 0); /* Soft borders */
+  --sidebar-ring: oklch(0.45 0.08 220); /* Focus ring */
 }
 
 .dark {
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.985 0 0);
-  --card: oklch(0.145 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.145 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.985 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.269 0 0);
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.396 0.141 25.723);
-  --destructive-foreground: oklch(0.637 0.237 25.331);
-  --border: oklch(0.269 0 0);
-  --input: oklch(0.269 0 0);
-  --ring: oklch(0.439 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(0.269 0 0);
-  --sidebar-ring: oklch(0.439 0 0);
+  /* Dark mode minimalist colors for 40-60 age group */
+  --background: oklch(0.12 0 0); /* Deep charcoal background */
+  --foreground: oklch(0.92 0 0); /* Light gray text for high contrast */
+  --card: oklch(0.16 0 0); /* Slightly lighter card background */
+  --card-foreground: oklch(0.92 0 0); /* Light gray text */
+  --popover: oklch(0.16 0 0); /* Consistent with cards */
+  --popover-foreground: oklch(0.92 0 0); /* Light gray text */
+  --primary: oklch(0.55 0.1 220); /* Brighter blue-gray for dark mode */
+  --primary-foreground: oklch(0.98 0 0); /* White text */
+  --secondary: oklch(0.22 0 0); /* Dark gray */
+  --secondary-foreground: oklch(0.85 0 0); /* Light text */
+  --muted: oklch(0.18 0 0); /* Muted background */
+  --muted-foreground: oklch(0.65 0 0); /* Medium light gray */
+  --accent: oklch(0.24 0 0); /* Subtle accent */
+  --accent-foreground: oklch(0.9 0 0); /* Light text */
+  --destructive: oklch(0.6 0.18 15); /* Brighter red for visibility */
+  --destructive-foreground: oklch(0.98 0 0); /* White text */
+  --border: oklch(0.28 0 0); /* Subtle borders */
+  --input: oklch(0.2 0 0); /* Input background */
+  --ring: oklch(0.55 0.1 220); /* Focus ring */
+  --chart-1: oklch(0.6 0.15 220); /* Brighter blue */
+  --chart-2: oklch(0.65 0.12 160); /* Brighter teal */
+  --chart-3: oklch(0.7 0.1 80); /* Brighter green */
+  --chart-4: oklch(0.6 0.12 280); /* Brighter purple */
+  --chart-5: oklch(0.65 0.15 40); /* Brighter orange */
+  --sidebar: oklch(0.14 0 0); /* Dark sidebar */
+  --sidebar-foreground: oklch(0.9 0 0); /* Light text */
+  --sidebar-primary: oklch(0.55 0.1 220); /* Primary blue-gray */
+  --sidebar-primary-foreground: oklch(0.98 0 0); /* White text */
+  --sidebar-accent: oklch(0.24 0 0); /* Subtle accent */
+  --sidebar-accent-foreground: oklch(0.9 0 0); /* Light text */
+  --sidebar-border: oklch(0.28 0 0); /* Subtle borders */
+  --sidebar-ring: oklch(0.55 0.1 220); /* Focus ring */
 }
 
 @theme inline {
@@ -120,5 +122,79 @@
   }
   body {
     @apply bg-background text-foreground;
+    /* Enhanced readability for 40-60 age group */
+    font-size: 16px; /* Larger base font size */
+    line-height: 1.6; /* Better line spacing */
+  }
+  
+  /* Improved focus visibility */
+  button:focus-visible,
+  input:focus-visible,
+  select:focus-visible,
+  textarea:focus-visible,
+  a:focus-visible {
+    outline: 2px solid hsl(var(--ring));
+    outline-offset: 2px;
+  }
+  
+  /* Better button contrast */
+  .btn-primary {
+    background-color: hsl(var(--primary));
+    color: hsl(var(--primary-foreground));
+    border: 1px solid hsl(var(--primary));
+  }
+  
+  /* Enhanced table readability */
+  table {
+    border-collapse: collapse;
+  }
+  
+  th, td {
+    padding: 12px 16px; /* More generous padding */
+    border-bottom: 1px solid hsl(var(--border));
+  }
+  
+  /* Better form field spacing */
+  .form-field {
+    margin-bottom: 1.5rem;
+  }
+  
+  /* White background for search inputs and filter buttons */
+  .search-input {
+    background-color: white !important;
+    border-color: hsl(var(--border)) !important;
+  }
+  
+  .filter-button {
+    background-color: white !important;
+    border-color: hsl(var(--border)) !important;
+    color: hsl(var(--foreground)) !important;
+  }
+  
+  .filter-button:hover {
+    background-color: hsl(var(--muted)) !important;
+  }
+}
+
+@layer utilities {
+  .line-clamp-1 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 1;
+  }
+  
+  .line-clamp-2 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+  
+  .line-clamp-3 {
+    overflow: hidden;
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
   }
 }

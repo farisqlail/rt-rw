@@ -50,16 +50,16 @@ export function Sidebar() {
   return (
     <aside
       className={cn(
-        "bg-card border-r border-border transition-all duration-300 flex flex-col",
+        "bg-primary text-primary-foreground border-r border-primary/20 transition-all duration-300 flex flex-col",
         collapsed ? "w-16" : "w-64"
       )}
     >
       {/* Header */}
-      <div className="p-4 border-b border-border flex items-center justify-between">
+      <div className="p-4 border-b border-primary-foreground/20 flex items-center justify-between">
         {!collapsed && (
           <div>
-            <h1 className="font-semibold text-lg">RT/RW Manager</h1>
-            <p className="text-xs text-muted-foreground">Admin Console</p>
+            <h1 className="font-semibold text-lg text-primary-foreground">RT/RW Manager</h1>
+            <p className="text-xs text-primary-foreground/70">Admin Console</p>
           </div>
         )}
         <Button
@@ -82,7 +82,10 @@ export function Sidebar() {
           <Link key={item.href} href={item.href}>
             <Button
               variant="ghost"
-              className={cn("w-full justify-start gap-3", collapsed && "justify-center px-2")}
+              className={cn(
+                "w-full justify-start gap-3 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
+                collapsed && "justify-center px-2"
+              )}
             >
               <item.icon className="h-5 w-5 shrink-0" />
               {!collapsed && <span>{item.label}</span>}
@@ -93,18 +96,18 @@ export function Sidebar() {
 
       {/* Profile section */}
       <div
-        className="p-4 border-t border-border relative"
+        className="p-4 border-t border-primary-foreground/20 relative"
         onMouseEnter={() => setHovered(true)}
         onMouseLeave={() => setHovered(false)}
       >
         <div className={cn("flex items-center gap-3", collapsed && "justify-center")}>
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 uppercase">
-            <span className="text-sm font-medium">{user?.name?.charAt(0) || "?"}</span>
+          <div className="h-8 w-8 rounded-full bg-primary-foreground/20 flex items-center justify-center shrink-0 uppercase">
+            <span className="text-sm font-medium text-primary-foreground">{user?.name?.charAt(0) || "?"}</span>
           </div>
           {!collapsed && (
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">{user?.name || "Pengguna"}</p>
-              <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              <p className="text-sm font-medium truncate text-primary-foreground">{user?.name || "Pengguna"}</p>
+              <p className="text-xs text-primary-foreground/70 truncate">{user?.email}</p>
             </div>
           )}
         </div>

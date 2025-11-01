@@ -1,29 +1,107 @@
 "use client"
 
+import { useState, useEffect } from "react"
+import { useParams, useRouter } from "next/navigation"
 import { ArrowLeft, Edit, Trash2, CheckCircle } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Mock data
-const laporanDetail = {
-  id: "1",
-  tanggal: "2024-01-25",
-  jenis: "kejadian",
-  deskripsi:
-    "Terjadi pencurian sepeda motor di area parkir. Motor hilang pada malam hari sekitar pukul 02.00 WIB. Sudah dilaporkan ke pihak kepolisian.",
-  lokasi: "Jl. Merdeka No. 15",
-  pelapor: "Budi Santoso",
-  status: "in-progress",
-  tindakLanjut: "Koordinasi dengan kepolisian dan pemasangan CCTV tambahan",
-}
+import { getDataById, updateData, deleteData } from "@/lib/supabaseUtils"
+import type { Security } from "@/lib/types"
 
 export default function DetailKeamananPage() {
+  const params = useParams()
+  const router = useRouter()
+  const [securityData, setSecurityData] = useState<Security | null>(null)
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    if (params.id) {
+      fetchSecurityData()
+    }
+  }, [params.id])
+
+  const fetchSecurityData = async () => {
+    try {
+      const data = await getDataById<Security>("rtrw_securities", Number(params.id))
+      setSecurityData(data)
+    } catch (error) {
+      console.error("Error fetching security data:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleMarkResolved = async () => {
+    if (!securityData) return
+    
+    try {
+      await updateData<Security>("rtrw_securities", securityData.id, { status: "resolved" })
+      setSecurityData({ ...securityData, status: "resolved" })
+      alert("Status berhasil diperbarui menjadi resolved!")
+    } catch (error) {
+      console.error("Error updating status:", error)
+      alert("Gagal memperbarui status!")
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!securityData) return
+    
+    if (confirm("Apakah Anda yakin ingin menghapus data keamanan ini?")) {
+      try {
+        await deleteData("rtrw_securities", securityData.id)
+        alert("Data keamanan berhasil dihapus!")
+        router.push("/dashboard/keamanan")
+      } catch (error) {
+        console.error("Error deleting security data:", error)
+        alert("Gagal menghapus data keamanan!")
+      }
+    }
+  }
+
+  if (loading) {
+    return (
+      <div>
+        <Link href="/dashboard/keamanan">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Kembali
+          </Button>
+        </Link>
+        <PageHeader
+          title="Detail Data Keamanan"
+          description="Memuat data..."
+        />
+        <div className="flex justify-center items-center h-64">
+          <div className="text-center">Loading...</div>
+        </div>
+      </div>
+    )
+  }
+
+  if (!securityData) {
+    return (
+      <div>
+        <Link href="/dashboard/keamanan">
+          <Button variant="ghost" className="mb-4">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Kembali
+          </Button>
+        </Link>
+        <PageHeader
+          title="Detail Data Keamanan"
+          description="Data tidak ditemukan"
+        />
+      </div>
+    )
+  }
+
   return (
     <div>
-      <Link href="/keamanan">
+      <Link href="/dashboard/keamanan">
         <Button variant="ghost" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Kembali
@@ -31,23 +109,27 @@ export default function DetailKeamananPage() {
       </Link>
 
       <PageHeader
-        title="Detail Laporan Keamanan"
-        description={`Laporan #${laporanDetail.id}`}
+        title="Detail Data Keamanan"
+        description={`Data #${securityData.id}`}
         action={
           <div className="flex gap-2">
-            {laporanDetail.status !== "resolved" && (
-              <Button>
+            {securityData.status !== "resolved" && (
+              <Button onClick={handleMarkResolved}>
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Tandai Selesai
               </Button>
             )}
-            <Link href={`/keamanan/${laporanDetail.id}/edit`}>
+            <Link href={`/dashboard/keamanan/${securityData.id}/edit`}>
               <Button variant="outline">
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             </Link>
-            <Button variant="outline" className="text-destructive bg-transparent">
+            <Button 
+              variant="outline" 
+              className="text-destructive bg-transparent"
+              onClick={handleDelete}
+            >
               <Trash2 className="h-4 w-4 mr-2" />
               Hapus
             </Button>
@@ -61,37 +143,19 @@ export default function DetailKeamananPage() {
             <div className="flex items-center gap-2 mb-4">
               <Badge
                 variant={
-                  laporanDetail.jenis === "kejadian"
-                    ? "destructive"
-                    : laporanDetail.jenis === "patroli"
-                      ? "default"
-                      : "secondary"
-                }
-              >
-                {laporanDetail.jenis}
-              </Badge>
-              <Badge
-                variant={
-                  laporanDetail.status === "resolved"
+                  securityData.status === "resolved"
                     ? "default"
-                    : laporanDetail.status === "in-progress"
+                    : securityData.status === "in-progress"
                       ? "secondary"
-                      : "secondary"
+                      : "destructive"
                 }
               >
-                {laporanDetail.status}
+                {securityData.status}
               </Badge>
             </div>
 
-            <h2 className="text-lg font-semibold mb-3">Deskripsi Laporan</h2>
-            <p className="text-muted-foreground whitespace-pre-wrap">{laporanDetail.deskripsi}</p>
-
-            {laporanDetail.tindakLanjut && (
-              <div className="mt-6 pt-6 border-t border-border">
-                <h2 className="text-lg font-semibold mb-3">Tindak Lanjut</h2>
-                <p className="text-muted-foreground">{laporanDetail.tindakLanjut}</p>
-              </div>
-            )}
+            <h2 className="text-lg font-semibold mb-3">Deskripsi</h2>
+            <p className="text-muted-foreground whitespace-pre-wrap">{securityData.descriptions}</p>
           </Card>
         </div>
 
@@ -101,15 +165,19 @@ export default function DetailKeamananPage() {
             <div className="space-y-3">
               <div>
                 <p className="text-sm text-muted-foreground">Tanggal</p>
-                <p className="font-medium">{laporanDetail.tanggal}</p>
+                <p className="font-medium">{new Date(securityData.date).toLocaleDateString('id-ID')}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Lokasi</p>
-                <p className="font-medium">{laporanDetail.lokasi}</p>
+                <p className="font-medium">{securityData.location}</p>
               </div>
               <div>
                 <p className="text-sm text-muted-foreground">Pelapor</p>
-                <p className="font-medium">{laporanDetail.pelapor}</p>
+                <p className="font-medium">{securityData.reporter}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Dibuat</p>
+                <p className="font-medium">{new Date(securityData.created_at).toLocaleDateString('id-ID')}</p>
               </div>
             </div>
           </Card>

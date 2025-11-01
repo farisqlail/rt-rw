@@ -1,32 +1,97 @@
 "use client"
 
-import { ArrowLeft, Download, Edit, CheckCircle, XCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { useRouter, useParams } from "next/navigation"
+import { ArrowLeft, Download, Edit, Trash2, Loader2 } from "lucide-react"
 import Link from "next/link"
 import { PageHeader } from "@/components/page-header"
 import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-
-// Mock data
-const suratDetail = {
-  id: "1",
-  nomorSurat: "001/RT-001/I/2024",
-  jenisSurat: "Surat Keterangan Domisili",
-  pemohon: "Budi Santoso",
-  nik: "3201012345678901",
-  alamat: "Jl. Merdeka No. 12, RT 001/RW 005",
-  keperluan: "Untuk keperluan administrasi bank",
-  tanggalPengajuan: "2024-01-15",
-  tanggalSelesai: "2024-01-16",
-  status: "selesai",
-  keterangan: "Surat telah ditandatangani oleh Ketua RT",
-  dibuatOleh: "Admin RT",
-}
+import { getData, deleteData } from "@/lib/supabaseUtils"
+import type { MailManagement } from "@/lib/types"
 
 export default function DetailSuratPage() {
+  const router = useRouter()
+  const params = useParams()
+  const [mailData, setMailData] = useState<MailManagement | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [deleteLoading, setDeleteLoading] = useState(false)
+
+  useEffect(() => {
+    if (params.id) {
+      fetchMailData()
+    }
+  }, [params.id])
+
+  const fetchMailData = async () => {
+    try {
+      setLoading(true)
+      const data = await getData<MailManagement>("rtrw_mail_managements", { id: params.id })
+      
+      if (data && data.length > 0) {
+        setMailData(data[0])
+      } else {
+        alert("Data surat tidak ditemukan")
+        router.push("/dashboard/surat")
+      }
+    } catch (error) {
+      console.error("Error fetching mail data:", error)
+      alert("Gagal memuat data surat")
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!mailData) return
+    
+    const confirmDelete = confirm("Apakah Anda yakin ingin menghapus surat ini?")
+    if (!confirmDelete) return
+
+    try {
+      setDeleteLoading(true)
+      const result = await deleteData("rtrw_mail_managements", mailData.id)
+      
+      if (result) {
+        router.push("/dashboard/surat")
+      } else {
+        alert("Gagal menghapus surat. Silakan coba lagi.")
+      }
+    } catch (error) {
+      console.error("Error deleting mail:", error)
+      alert("Terjadi kesalahan saat menghapus surat.")
+    } finally {
+      setDeleteLoading(false)
+    }
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="flex items-center gap-2">
+          <Loader2 className="h-6 w-6 animate-spin" />
+          <span>Memuat data surat...</span>
+        </div>
+      </div>
+    )
+  }
+
+  if (!mailData) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center">
+          <p className="text-muted-foreground">Data surat tidak ditemukan</p>
+          <Link href="/dashboard/surat">
+            <Button className="mt-4">Kembali ke Daftar Surat</Button>
+          </Link>
+        </div>
+      </div>
+    )
+  }
   return (
     <div>
-      <Link href="/surat">
+      <Link href="/dashboard/surat">
         <Button variant="ghost" className="mb-4">
           <ArrowLeft className="h-4 w-4 mr-2" />
           Kembali
@@ -34,30 +99,32 @@ export default function DetailSuratPage() {
       </Link>
 
       <PageHeader
-        title={suratDetail.jenisSurat}
-        description={`No. Surat: ${suratDetail.nomorSurat}`}
+        title={mailData.mail_category}
+        description={`No. Surat: ${mailData.mail_number}`}
         action={
           <div className="flex gap-2">
             <Button variant="outline">
               <Download className="h-4 w-4 mr-2" />
               Download PDF
             </Button>
-            {suratDetail.status === "pending" && (
-              <>
-                <Button variant="outline">
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-                <Button>
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Setujui
-                </Button>
-                <Button variant="outline" className="text-destructive bg-transparent">
-                  <XCircle className="h-4 w-4 mr-2" />
-                  Tolak
-                </Button>
-              </>
-            )}
+            <Link href={`/dashboard/surat/${mailData.id}/edit`}>
+              <Button variant="outline">
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            </Link>
+            <Button 
+              variant="destructive" 
+              onClick={handleDelete}
+              disabled={deleteLoading}
+            >
+              {deleteLoading ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Trash2 className="h-4 w-4 mr-2" />
+              )}
+              {deleteLoading ? "Menghapus..." : "Hapus"}
+            </Button>
           </div>
         }
       />
@@ -65,60 +132,23 @@ export default function DetailSuratPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Informasi Pemohon</h2>
+            <h2 className="text-lg font-semibold mb-4">Informasi Surat</h2>
             <div className="grid grid-cols-2 gap-4">
               <div>
+                <p className="text-sm text-muted-foreground">Nomor Surat</p>
+                <p className="font-medium">{mailData.mail_number}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Kategori Surat</p>
+                <p className="font-medium">{mailData.mail_category}</p>
+              </div>
+              <div>
                 <p className="text-sm text-muted-foreground">Nama Pemohon</p>
-                <p className="font-medium">{suratDetail.pemohon}</p>
+                <p className="font-medium">{mailData.applicant}</p>
               </div>
               <div>
-                <p className="text-sm text-muted-foreground">NIK</p>
-                <p className="font-medium">{suratDetail.nik}</p>
-              </div>
-              <div className="col-span-2">
-                <p className="text-sm text-muted-foreground">Alamat</p>
-                <p className="font-medium">{suratDetail.alamat}</p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Detail Surat</h2>
-            <div className="space-y-4">
-              <div>
-                <p className="text-sm text-muted-foreground">Keperluan</p>
-                <p className="font-medium">{suratDetail.keperluan}</p>
-              </div>
-              {suratDetail.keterangan && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Keterangan</p>
-                  <p className="font-medium">{suratDetail.keterangan}</p>
-                </div>
-              )}
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Preview Surat</h2>
-            <div className="bg-muted/30 p-6 rounded-lg border border-border min-h-[400px]">
-              <div className="text-center mb-6">
-                <h3 className="font-bold text-lg">SURAT KETERANGAN DOMISILI</h3>
-                <p className="text-sm">Nomor: {suratDetail.nomorSurat}</p>
-              </div>
-              <div className="space-y-4 text-sm">
-                <p>Yang bertanda tangan di bawah ini, Ketua RT 001 / RW 005, menerangkan bahwa:</p>
-                <div className="ml-6 space-y-2">
-                  <p>Nama: {suratDetail.pemohon}</p>
-                  <p>NIK: {suratDetail.nik}</p>
-                  <p>Alamat: {suratDetail.alamat}</p>
-                </div>
-                <p>
-                  Adalah benar warga yang berdomisili di wilayah RT 001 / RW 005. Surat keterangan ini dibuat untuk
-                  keperluan: {suratDetail.keperluan}
-                </p>
-                <p>
-                  Demikian surat keterangan ini dibuat dengan sebenarnya untuk dapat dipergunakan sebagaimana mestinya.
-                </p>
+                <p className="text-sm text-muted-foreground">Tanggal Dibuat</p>
+                <p className="font-medium">{new Date(mailData.created_at).toLocaleDateString('id-ID')}</p>
               </div>
             </div>
           </Card>
@@ -129,34 +159,28 @@ export default function DetailSuratPage() {
             <h2 className="text-lg font-semibold mb-4">Status Surat</h2>
             <Badge
               variant={
-                suratDetail.status === "selesai"
+                mailData.status === "selesai"
                   ? "default"
-                  : suratDetail.status === "ditolak"
+                  : mailData.status === "ditolak"
                     ? "destructive"
                     : "secondary"
               }
               className="text-sm"
             >
-              {suratDetail.status.toUpperCase()}
+              {mailData.status.toUpperCase()}
             </Badge>
           </Card>
 
           <Card className="p-6">
-            <h2 className="text-lg font-semibold mb-4">Timeline</h2>
+            <h2 className="text-lg font-semibold mb-4">Informasi Tambahan</h2>
             <div className="space-y-4">
               <div>
-                <p className="text-sm text-muted-foreground">Tanggal Pengajuan</p>
-                <p className="font-medium">{suratDetail.tanggalPengajuan}</p>
+                <p className="text-sm text-muted-foreground">UUID</p>
+                <p className="font-medium text-xs">{mailData.uuid}</p>
               </div>
-              {suratDetail.tanggalSelesai && (
-                <div>
-                  <p className="text-sm text-muted-foreground">Tanggal Selesai</p>
-                  <p className="font-medium">{suratDetail.tanggalSelesai}</p>
-                </div>
-              )}
               <div>
-                <p className="text-sm text-muted-foreground">Dibuat Oleh</p>
-                <p className="font-medium">{suratDetail.dibuatOleh}</p>
+                <p className="text-sm text-muted-foreground">ID Surat</p>
+                <p className="font-medium">{mailData.id}</p>
               </div>
             </div>
           </Card>

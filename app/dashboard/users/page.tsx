@@ -149,7 +149,7 @@ export default function UsersPage() {
             placeholder="Cari nama atau email..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-9 search-input"
           />
         </div>
       </div>

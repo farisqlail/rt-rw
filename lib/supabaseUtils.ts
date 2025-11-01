@@ -1,4 +1,4 @@
-  import { supabase } from "./supabaseClient";
+import { supabase } from "./supabaseClient";
 
   // 🔹 Create data
   export const createData = async <T>(
@@ -32,9 +32,28 @@
       return null;
     }
     return data as T[];
-  };
+};
 
-  // 🔹 Update data
+// 🔹 Get single data by ID
+export const getDataById = async <T>(
+  table: string,
+  id: string | number,
+  idField: string = "id"
+): Promise<T | null> => {
+  const { data, error } = await supabase
+    .from(table)
+    .select("*")
+    .eq(idField, id)
+    .single();
+  
+  if (error) {
+    console.error(`Error ambil data dari ${table}:`, error.message);
+    return null;
+  }
+  return data as T;
+};
+
+// 🔹 Update data
   export const updateData = async <T>(
     table: string,
     id: string | number,
