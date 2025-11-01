@@ -221,7 +221,7 @@ export default function LandingPage() {
       <footer className="py-8 border-t border-border">
         <div className="container mx-auto px-6 text-center">
           <p className="text-muted-foreground">
-            © 2024 Sistem Informasi RT/RW. Semua hak dilindungi.
+            © 2025 Sistem Informasi RT/RW. Created by LailDev.
           </p>
         </div>
       </footer>
