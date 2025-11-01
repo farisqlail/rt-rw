@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react"
 import Link from "next/link"
-import { Plus, Search, Filter, TrendingUp, TrendingDown, Wallet, Edit, Trash2, Loader2 } from "lucide-react"
+import { Plus, Search, Filter, TrendingUp, TrendingDown, Wallet, Edit, Trash2, Loader2, Download, FileSpreadsheet, Calendar, X } from "lucide-react"
 import { PageHeader } from "@/components/page-header"
 import { DataTable } from "@/components/data-table"
 import { Button } from "@/components/ui/button"
@@ -10,7 +10,9 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card } from "@/components/ui/card"
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { getData, deleteData } from "@/lib/supabaseUtils"
+import { exportToExcel, exportFilteredData } from "@/lib/exportUtils"
 import type { Keuangan } from "@/lib/types"
 
 const formatDate = (dateString: string) => {
@@ -35,6 +37,10 @@ export default function KeuanganPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [deleteLoading, setDeleteLoading] = useState<number | null>(null)
+  const [exportLoading, setExportLoading] = useState<'excel' | null>(null)
+  const [dateFrom, setDateFrom] = useState<string>("")
+  const [dateTo, setDateTo] = useState<string>("")
+  const [filterOpen, setFilterOpen] = useState(false)
 
   useEffect(() => {
     fetchKeuanganData()
@@ -76,10 +82,47 @@ export default function KeuanganPage() {
     }
   }
 
-  const filteredData = keuanganData.filter((item) =>
-    item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    item.description.toLowerCase().includes(searchQuery.toLowerCase())
-  )
+  const handleExportExcel = async () => {
+    try {
+      setExportLoading('excel')
+      if (dateFrom && dateTo) {
+        // Export with date range filter
+        await exportFilteredData(keuanganData, '', dateFrom, dateTo)
+      } else {
+        // Export all data
+        await exportToExcel(filteredData, 'Data_Keuangan_RTRW')
+      }
+    } catch (error) {
+      console.error("Error exporting to Excel:", error)
+      alert("Gagal mengexport ke Excel")
+    } finally {
+      setExportLoading(null)
+    }
+  }
+
+
+
+  const filteredData = keuanganData.filter((item) => {
+    const matchesSearch = item.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      item.description.toLowerCase().includes(searchQuery.toLowerCase())
+    
+    // Parse item date (only date part, ignore time)
+    const itemDate = new Date(item.created_at.split('T')[0])
+    
+    let matchesDateRange = true
+    
+    if (dateFrom) {
+      const fromDate = new Date(dateFrom)
+      matchesDateRange = matchesDateRange && itemDate >= fromDate
+    }
+    
+    if (dateTo) {
+      const toDate = new Date(dateTo)
+      matchesDateRange = matchesDateRange && itemDate <= toDate
+    }
+    
+    return matchesSearch && matchesDateRange
+  })
 
   const totalPemasukan = filteredData
     .filter((item) => item.finance_category === "pemasukan")
@@ -167,12 +210,27 @@ export default function KeuanganPage() {
         title="Keuangan RT/RW"
         description="Kelola pemasukan dan pengeluaran"
         action={
-          <Link href="/dashboard/keuangan/tambah">
-            <Button>
-              <Plus className="h-4 w-4 mr-2" />
-              Tambah Transaksi
+          <div className="flex gap-2">
+            <Button
+              variant="outline"
+              onClick={handleExportExcel}
+              disabled={exportLoading === 'excel'}
+            >
+              {exportLoading === 'excel' ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <FileSpreadsheet className="h-4 w-4 mr-2" />
+              )}
+              Export Excel
             </Button>
-          </Link>
+
+            <Link href="/dashboard/keuangan/tambah">
+              <Button>
+                <Plus className="h-4 w-4 mr-2" />
+                Tambah Transaksi
+              </Button>
+            </Link>
+          </div>
         }
       />
 
@@ -224,10 +282,61 @@ export default function KeuanganPage() {
             className="pl-10 search-input"
           />
         </div>
-        <Button variant="outline" className="filter-button">
-          <Filter className="h-4 w-4 mr-2" />
-          Filter
-        </Button>
+        <Popover open={filterOpen} onOpenChange={setFilterOpen}>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="filter-button">
+              <Filter className="h-4 w-4 mr-2" />
+              Filter
+              {(dateFrom || dateTo) && (
+                <Badge variant="secondary" className="ml-2 h-5 px-1.5 text-xs">
+                  1
+                </Badge>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80" align="end">
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <h4 className="font-medium leading-none">Filter Tanggal</h4>
+                <p className="text-sm text-muted-foreground">
+                  Pilih rentang tanggal untuk memfilter transaksi
+                </p>
+              </div>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Dari tanggal</label>
+                  <Input
+                    type="date"
+                    value={dateFrom}
+                    onChange={(e) => setDateFrom(e.target.value)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Sampai tanggal</label>
+                  <Input
+                    type="date"
+                    value={dateTo}
+                    onChange={(e) => setDateTo(e.target.value)}
+                  />
+                </div>
+              </div>
+              <div className="flex justify-between">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setDateFrom("")
+                    setDateTo("")
+                  }}
+                  disabled={!dateFrom && !dateTo}
+                >
+                  <X className="h-4 w-4 mr-2" />
+                  Reset
+                </Button>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       {loading ? (

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { usePathname } from "next/navigation"
 import {
   Users,
   FileText,
@@ -38,8 +39,17 @@ export function Sidebar() {
   const [collapsed, setCollapsed] = useState(false)
   const [hovered, setHovered] = useState(false)
   const { data: session } = useSession()
+  const pathname = usePathname()
 
   const user = session?.user
+
+  // Function to check if menu item is active
+  const isActive = (href: string) => {
+    if (href === "/dashboard/") {
+      return pathname === "/dashboard" || pathname === "/dashboard/"
+    }
+    return pathname.startsWith(href)
+  }
 
   const handleLogout = async () => {
     await signOut({ redirect: false })
@@ -78,20 +88,24 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 p-2 space-y-1">
-        {menuItems.map((item) => (
-          <Link key={item.href} href={item.href}>
-            <Button
-              variant="ghost"
-              className={cn(
-                "w-full justify-start gap-3 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground",
-                collapsed && "justify-center px-2"
-              )}
-            >
-              <item.icon className="h-5 w-5 shrink-0" />
-              {!collapsed && <span>{item.label}</span>}
-            </Button>
-          </Link>
-        ))}
+        {menuItems.map((item) => {
+          const active = isActive(item.href)
+          return (
+            <Link key={item.href} href={item.href}>
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start gap-3 text-primary-foreground hover:bg-primary-foreground/10 hover:text-primary-foreground transition-colors",
+                  collapsed && "justify-center px-2",
+                  active && "bg-primary-foreground/20 text-primary-foreground font-medium border-r-2 border-primary-foreground"
+                )}
+              >
+                <item.icon className="h-5 w-5 shrink-0" />
+                {!collapsed && <span>{item.label}</span>}
+              </Button>
+            </Link>
+          )
+        })}
       </nav>
 
       {/* Profile section */}
